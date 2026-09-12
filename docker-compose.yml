@@ -1,26 +1,12 @@
 services:
-  postgres:
-    image: postgres:18.2-alpine3.23
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: oxicloud
-    ports:
-      - "5432:5432"
-    networks:
-      - oxicloud
-    volumes:
-      - pg_data:/var/lib/postgresql/
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   oxicloud:
-    image: diocrafts/oxicloud:latest
-    restart: always
+    container_name: oxicloud
+    image: diocrafts/oxicloud:0.8.9
+    networks: 
+      - caddynet
+    ports:
+      - "127.0.0.1:8186:8086"
     environment:
       # Return freed heap pages to the OS promptly. mimalloc retains them by
       # default, so idle RSS clamps at the peak even after the in-memory caches
@@ -29,39 +15,43 @@ services:
       # Also baked into the Dockerfile; set here so it applies to the prebuilt
       # image too.
       MIMALLOC_PURGE_DELAY: "0"
-    build:
-      context: .
-      dockerfile: Dockerfile
-      # Route `docker compose up --build` / `docker compose build` through the
-      # cache-mount builder so repeat local builds recompile only changed crates
-      # (true incremental). Compose v2 uses BuildKit by default, which the
-      # Dockerfile already requires. The image is functionally identical to the
-      # default `builder` stage CI uses; only the build path differs.
-      args:
-        BUILDER: builder-cache
-        BIN_DIR: /app/bin
-    ports:
-      - "8086:8086"
-    networks:
-      - oxicloud
+    volumes:
+      - /opt/1panel/docker/compose/oxicloud/storage_data:/app/storage
+    restart: always
+
     depends_on:
       postgres:
         condition: service_healthy
     env_file:
       - .env
-    volumes:
-      - storage_data:/app/storage
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8086/ready || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8186/ready || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 30s
       retries: 3
 
+  postgres: # use pgAdmin4 instead
+    container_name: postgres
+    image: postgres:18.2-alpine3.23
+    networks:
+      - caddynet    
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: oxicloud
+    volumes:
+      - pg_data:/var/lib/postgresql/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
 networks:
-  oxicloud:
-    driver: bridge
+  caddynet:
+    external: true
 
-volumes:
-  pg_data:
-  storage_data:
+
