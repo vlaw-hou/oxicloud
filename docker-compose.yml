@@ -15,8 +15,12 @@ services:
       # Also baked into the Dockerfile; set here so it applies to the prebuilt
       # image too.
       MIMALLOC_PURGE_DELAY: "0"
+      OXICLOUD_DB_CONNECTION_STRING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/oxicloud
     volumes:
-      - /opt/vps3/vps3-data/db-postgres/oxicloud/db-data:/app/storage
+      # stores actual files/ objects on vps5
+      - /mnt/nfs-vps5/.../oxicloud/data:/app/storage
+      # stores postgres data locally
+      - /opt/vps3/vps3-data/db-postgres/oxicloud/db-data:/var/lib/postgresql
     restart: always
     depends_on:
       postgres:
@@ -30,25 +34,6 @@ services:
       start_period: 30s
       retries: 3
 
-  postgres: # use pgAdmin4 instead
-    container_name: postgres
-    image: postgres:18.2-alpine3.23
-    networks:
-      - caddynet    
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: oxicloud
-    volumes:
-      - pg_data:/var/lib/postgresql/
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: always
 networks:
   caddynet:
     external: true
