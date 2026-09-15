@@ -24,7 +24,7 @@ services:
       OXICLOUD_DB_CONNECTION_STRING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/oxicloud
     volumes:
       # stores actual files/ objects on vps5
-      - /mnt/nfs-vps5/vps5-data/ext4-files/oxicloud/data:/app/storage
+      - /mnt/vps5-nfs/vps5-data/ext4-files/oxicloud/data:/app/storage
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8186/ready || exit 1"]
       interval: 30s
