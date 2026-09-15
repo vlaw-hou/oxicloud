@@ -26,12 +26,15 @@ services:
       # stores actual files/ objects on vps5
       - /mnt/vps5-nfs/vps5-data/ext4-files/oxicloud/data:/app/storage
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8186/ready || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8086/ready || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 30s
       retries: 3      
     restart: unless-stopped
+    depends_on:
+      postgres_db:
+        condition: service_started
 
 
 
