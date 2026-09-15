@@ -1,5 +1,9 @@
-services:
 
+networks:
+  caddynet:
+    external: true
+
+services:
   oxicloud:
     container_name: oxicloud
     image: diocrafts/oxicloud:0.8.9
@@ -34,8 +38,5 @@ services:
       start_period: 30s
       retries: 3
 
-networks:
-  caddynet:
-    external: true
 
 
