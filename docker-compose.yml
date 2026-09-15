@@ -7,6 +7,8 @@ services:
   oxicloud:
     container_name: oxicloud
     image: diocrafts/oxicloud:0.8.9
+    env_file:
+      - .env    
     networks: 
       - caddynet
     ports:
@@ -19,22 +21,17 @@ services:
       # Also baked into the Dockerfile; set here so it applies to the prebuilt
       # image too.
       MIMALLOC_PURGE_DELAY: "0"
-      OXICLOUD_DB_CONNECTION_STRING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/oxicloud
+      OXICLOUD_DB_CONNECTION_STRING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/oxicloud
     volumes:
       # stores actual files/ objects on vps5
-      - /mnt/nfs-vps5/.../oxicloud/data:/app/storage
-      # stores postgres data locally
-      - /opt/vps3/vps3-data/db-postgres/oxicloud/db-data:/var/lib/postgresql
-    restart: always
-
-    env_file:
-      - .env
+      - /mnt/nfs-vps5/vps5-data/ext4-files/oxicloud/data:/app/storage
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8186/ready || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 30s
-      retries: 3
+      retries: 3      
+    restart: unless-stopped
 
 
 
