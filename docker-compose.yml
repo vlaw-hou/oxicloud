@@ -26,9 +26,7 @@ services:
       # stores postgres data locally
       - /opt/vps3/vps3-data/db-postgres/oxicloud/db-data:/var/lib/postgresql
     restart: always
-    depends_on:
-      postgres:
-        condition: service_healthy
+
     env_file:
       - .env
     healthcheck:
